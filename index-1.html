@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>milk — Image Processing Framework</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0d10;
+      --surface: #111418;
+      --border: #1e2430;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --text: #c8d6e5;
+      --muted: #5a6a7e;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── GRID BACKGROUND ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 60px;
+      background: rgba(10,13,16,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-logo span { color: var(--muted); }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+    }
+
+    nav a {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    nav a:hover { color: var(--accent); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8rem 2.5rem 4rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .hero-tag::before {
+      content: '';
+      display: inline-block;
+      width: 32px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-family: var(--mono);
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 700;
+      line-height: 1;
+      color: #fff;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    h1 .accent { color: var(--accent); }
+
+    .hero-desc {
+      font-size: 1.15rem;
+      font-weight: 300;
+      color: var(--text);
+      max-width: 560px;
+      margin-bottom: 2.5rem;
+      line-height: 1.8;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.75rem 1.75rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .btn-primary:hover {
+      background: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(0,229,255,0.25);
+    }
+
+    .btn-ghost {
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── BADGE ROW ── */
+    .badges {
+      margin-top: 3rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.75rem;
+      border-radius: 2px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    /* ── SECTION COMMON ── */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 5rem 2.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-family: var(--mono);
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .section-intro {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 580px;
+      margin-bottom: 3rem;
+      font-weight: 300;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      max-width: 900px;
+      margin: 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .feature-card {
+      background: var(--surface);
+      padding: 2rem;
+      transition: background 0.2s;
+    }
+
+    .feature-card:hover { background: #141820; }
+
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    /* ── DATA STRUCTURES ── */
+    .ds-list {
+      display: grid;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .ds-item {
+      background: var(--surface);
+      padding: 1.75rem 2rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.5rem;
+      align-items: start;
+      transition: background 0.2s;
+    }
+
+    .ds-item:hover { background: #141820; }
+
+    .ds-num {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      padding-top: 0.2rem;
+      letter-spacing: 0.1em;
+    }
+
+    .ds-title {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.4rem;
+    }
+
+    .ds-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ── INSTALL ── */
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      margin-top: 2rem;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .code-block::before {
+      content: attr(data-label);
+      position: absolute;
+      top: -1px;
+      right: 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--surface);
+      padding: 0 0.5rem;
+      border: 1px solid var(--border);
+      border-top: none;
+    }
+
+    pre {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: var(--text);
+    }
+
+    pre .comment { color: var(--muted); }
+    pre .cmd { color: var(--accent); }
+    pre .arg { color: #a78bfa; }
+
+    .install-steps {
+      display: grid;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .step-num {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: #000;
+      background: var(--accent);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-content h4 {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    .step-content p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.8em;
+      color: var(--accent);
+      background: rgba(0,229,255,0.07);
+      padding: 0.1em 0.4em;
+      border-radius: 2px;
+    }
+
+    /* ── PLUGINS ── */
+    .plugin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    .plugin-card {
+      background: var(--surface);
+      padding: 1.5rem;
+      transition: background 0.2s;
+    }
+
+    .plugin-card:hover { background: #141820; }
+
+    .plugin-card h4 {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+    }
+
+    .plugin-card p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ── LINKS ── */
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    .link-card {
+      background: var(--surface);
+      padding: 1.5rem 2rem;
+      text-decoration: none;
+      display: block;
+      transition: background 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    .link-card:hover {
+      background: #141820;
+      border-left-color: var(--accent);
+    }
+
+    .link-card-title {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    .link-card-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .link-arrow {
+      color: var(--accent);
+      margin-left: 0.35rem;
+      font-style: normal;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 2.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: gap;
+      gap: 1rem;
+    }
+
+    .footer-logo {
+      font-family: var(--mono);
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .footer-license {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── ENV VARS TABLE ── */
+    .env-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    .env-table th {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      padding: 0.75rem 1.25rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .env-table td {
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+      font-weight: 300;
+    }
+
+    .env-table tr:last-child td { border-bottom: none; }
+    .env-table tr:hover td { background: #141820; }
+
+    .env-name { font-family: var(--mono); color: var(--accent); font-size: 0.8rem; }
+    .env-desc { color: var(--muted); }
+    .env-example { font-family: var(--mono); color: var(--text); font-size: 0.75rem; }
+
+    /* ── SCAN LINE ANIMATION ── */
+    @keyframes scanline {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100vh); }
+    }
+
+    .scanline {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0,229,255,0.08), transparent);
+      animation: scanline 8s linear infinite;
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    /* ── FADE IN ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero > * {
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero > *:nth-child(1) { animation-delay: 0.1s; }
+    .hero > *:nth-child(2) { animation-delay: 0.2s; }
+    .hero > *:nth-child(3) { animation-delay: 0.3s; }
+    .hero > *:nth-child(4) { animation-delay: 0.4s; }
+    .hero > *:nth-child(5) { animation-delay: 0.5s; }
+
+    @media (max-width: 600px) {
+      nav ul { display: none; }
+      nav { padding: 0 1.25rem; }
+      section, .hero { padding-left: 1.25rem; padding-right: 1.25rem; }
+      footer { padding: 1.5rem 1.25rem; }
+      h1 { font-size: 2.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">milk<span>-org</span></a>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="#plugins">Plugins</a></li>
+    <li><a href="#links">Ecosystem</a></li>
+    <li><a href="https://github.com/milk-org/milk" target="_blank">GitHub ↗</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="top">
+  <div class="hero-tag">High-performance image processing</div>
+  <h1><span class="accent">milk</span><br>framework</h1>
+  <p class="hero-desc">
+    A modular framework for image processing and analysis, engineered for high-performance computing and real-time execution pipelines.
+  </p>
+  <div class="btn-row">
+    <a class="btn btn-primary" href="#install">↓ Get Started</a>
+    <a class="btn btn-ghost" href="https://github.com/milk-org/milk" target="_blank">View on GitHub</a>
+    <a class="btn btn-ghost" href="https://cacao-org.github.io/docs/" target="_blank">CACAO Docs ↗</a>
+  </div>
+  <div class="badges">
+    <span class="badge">GPL v3</span>
+    <span class="badge">Linux</span>
+    <span class="badge">C / Python</span>
+    <span class="badge">Real-time</span>
+    <span class="badge">Modular</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="section-label">// Overview</div>
+  <h2>What is milk?</h2>
+  <p class="section-intro">
+    milk provides a framework and tools for image processing and analysis, geared towards high-performance computing, modularity, and real-time execution pipelines.
+  </p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⌨️</div>
+      <h3>Command Line Interface</h3>
+      <p>A powerful CLI for easy access to functions and arguments. Runtime loading of modules to extend capabilities without recompilation.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>Interprocess Comm.</h3>
+      <p>IPC for sharing process status, function parameters, and images across concurrent processes with low latency.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚙️</div>
+      <h3>Modular Architecture</h3>
+      <p>Custom functions integrate seamlessly into the CLI. Plugin system enables composable, reusable processing units.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🐍</div>
+      <h3>Python Bindings</h3>
+      <p>pyMilk bindings let you interact with milk streams and data structures directly from Python workflows.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🐳</div>
+      <h3>Docker Support</h3>
+      <p>Official Docker image for reproducible deployments. CI/CD integration via GitHub Actions on every commit.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📡</div>
+      <h3>Stream Processing</h3>
+      <p>Low-latency shared memory streams enable real-time image data pipelines with TCP/UDP network transport.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DATA STRUCTURES -->
+<section id="structures">
+  <div class="section-label">// Core Data Structures</div>
+  <h2>Three pillars</h2>
+  <p class="section-intro">
+    milk's core design is built around three interoperable data structures that together enable the full pipeline lifecycle.
+  </p>
+  <div class="ds-list">
+    <div class="ds-item">
+      <div class="ds-num">01</div>
+      <div>
+        <div class="ds-title">Image Streams (streams)</div>
+        <div class="ds-desc">Low-latency shared memory images enabling interprocess communication of image data in real time. Supports TCP/UDP network transport, semaphore-based triggering, and logging.</div>
+      </div>
+    </div>
+    <div class="ds-item">
+      <div class="ds-num">02</div>
+      <div>
+        <div class="ds-title">Function Parameter Structures (FPS)</div>
+        <div class="ds-desc">Read/write function parameters at runtime through shared memory. Enables parameter sweeping, live tuning, and structured control of running processes without recompilation.</div>
+      </div>
+    </div>
+    <div class="ds-item">
+      <div class="ds-num">03</div>
+      <div>
+        <div class="ds-title">Process Info & Status (procinfo)</div>
+        <div class="ds-desc">Monitor and control running processes. Tracks CPU affinity, timing statistics, loop status, and signal handling. Integrates with the TUI process manager.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="section-label">// Installation</div>
+  <h2>Get up and running</h2>
+  <p class="section-intro">Check the <code>Dockerfile</code> for the full list of required packages.</p>
+
+  <div class="install-steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Clone the repository</h4>
+        <p>Download the source code from GitHub.</p>
+      </div>
+    </div>
+  </div>
+  <div class="code-block" data-label="bash">
+<pre><span class="cmd">git</span> <span class="arg">clone</span> https://github.com/milk-org/milk.git
+<span class="cmd">cd</span> milk</pre>
+  </div>
+
+  <div class="install-steps" style="margin-top:2rem">
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Compile (standard)</h4>
+        <p>Standard CMake build.</p>
+      </div>
+    </div>
+  </div>
+  <div class="code-block" data-label="bash">
+<pre><span class="cmd">mkdir</span> _build
+<span class="cmd">cd</span> _build
+<span class="cmd">cmake</span> ..
+<span class="cmd">make</span>
+<span class="cmd">sudo</span> make install</pre>
+  </div>
+
+  <div class="install-steps" style="margin-top:2rem">
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Compile with Python module</h4>
+        <p>Use the helper script for a local install with Python bindings.</p>
+      </div>
+    </div>
+  </div>
+  <div class="code-block" data-label="bash">
+<pre><span class="comment"># Install to a local prefix directory</span>
+<span class="cmd">./compile.sh</span> <span class="arg">$PWD/local</span></pre>
+  </div>
+
+  <div class="install-steps" style="margin-top:2rem">
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Set environment variables</h4>
+        <p>Add these to your <code>.bashrc</code> or equivalent shell config.</p>
+      </div>
+    </div>
+  </div>
+  <table class="env-table">
+    <thead>
+      <tr>
+        <th>Variable</th>
+        <th>Description</th>
+        <th>Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="env-name">MILK_ROOT</td>
+        <td class="env-desc">Source code directory</td>
+        <td class="env-example">/home/user/src/milk</td>
+      </tr>
+      <tr>
+        <td class="env-name">MILK_INSTALLDIR</td>
+        <td class="env-desc">Installation directory</td>
+        <td class="env-example">/usr/local/milk</td>
+      </tr>
+      <tr>
+        <td class="env-name">MILK_SHM_DIR</td>
+        <td class="env-desc">Shared memory directory</td>
+        <td class="env-example">/milk/shm</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="install-steps" style="margin-top:2rem">
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Verify &amp; Tutorial</h4>
+        <p>Check your install, then launch the interactive tutorial (requires tmux, nnn).</p>
+      </div>
+    </div>
+  </div>
+  <div class="code-block" data-label="bash">
+<pre><span class="cmd">milk-check</span>       <span class="comment"># verify installation from any directory</span>
+<span class="cmd">milk-tutorial</span>   <span class="comment"># interactive tutorial</span></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PLUGINS -->
+<section id="plugins">
+  <div class="section-label">// Plugins</div>
+  <h2>Extend with plugins</h2>
+  <p class="section-intro">Fetch and compile optional plugin suites to add domain-specific capabilities.</p>
+
+  <div class="plugin-grid">
+    <div class="plugin-card">
+      <h4>cacao</h4>
+      <p>Compute And Control for Adaptive Optics. Full AO control loop pipeline.</p>
+    </div>
+    <div class="plugin-card">
+      <h4>coffee</h4>
+      <p>Additional processing modules for wavefront sensing and correction.</p>
+    </div>
+    <div class="plugin-card">
+      <h4>atmosphere</h4>
+      <p>Atmospheric turbulence simulation and profiling tools.</p>
+    </div>
+    <div class="plugin-card">
+      <h4>milk-extra</h4>
+      <p>FFT, image filters, linear algebra, PSF tools, and more included out-of-tree.</p>
+    </div>
+  </div>
+
+  <div class="code-block" data-label="bash" style="margin-top:2rem">
+<pre><span class="comment"># Fetch and compile with cacao plugins</span>
+<span class="cmd">./fetch_cacao_dev.sh</span>
+<span class="cmd">./compile.sh</span> <span class="arg">$PWD/local</span>
+
+<span class="comment"># Fetch and compile with coffee plugins</span>
+<span class="cmd">./fetch_coffee_dev.sh</span>
+<span class="cmd">./compile.sh</span> <span class="arg">$PWD/local</span></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ECOSYSTEM LINKS -->
+<section id="links">
+  <div class="section-label">// Ecosystem</div>
+  <h2>Related projects</h2>
+  <p class="section-intro">milk is part of a broader open-source ecosystem for adaptive optics and real-time control.</p>
+  <div class="links-grid">
+    <a class="link-card" href="https://www.github.com/cacao-org/cacao" target="_blank">
+      <div class="link-card-title">CACAO<span class="link-arrow">↗</span></div>
+      <div class="link-card-desc">Compute and Control for Adaptive Optics. Full AO pipeline built on milk.</div>
+    </a>
+    <a class="link-card" href="https://cacao-org.github.io/docs/" target="_blank">
+      <div class="link-card-title">CACAO Docs<span class="link-arrow">↗</span></div>
+      <div class="link-card-desc">Full documentation for the CACAO adaptive optics framework.</div>
+    </a>
+    <a class="link-card" href="https://www.github.com/milk-org/ImageStreamIO" target="_blank">
+      <div class="link-card-title">ImageStreamIO<span class="link-arrow">↗</span></div>
+      <div class="link-card-desc">Core shared memory image stream library underlying milk streams.</div>
+    </a>
+    <a class="link-card" href="https://www.github.com/milk-org/pyMilk" target="_blank">
+      <div class="link-card-title">pyMilk<span class="link-arrow">↗</span></div>
+      <div class="link-card-desc">Python bindings for milk streams and data structures.</div>
+    </a>
+    <a class="link-card" href="https://github.com/milk-org/milk" target="_blank">
+      <div class="link-card-title">GitHub<span class="link-arrow">↗</span></div>
+      <div class="link-card-desc">Source code, issues, CI status, and release history.</div>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">milk-org / milk</div>
+  <div class="footer-license">Licensed under GPL v3</div>
+</footer>
+
+</body>
+</html>
